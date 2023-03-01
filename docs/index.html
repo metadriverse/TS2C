@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+
+
+<!-- === Header Starts === -->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <title>Guarded Policy Optimization with Imperfect Online Demonstrations</title>
+
+  <link href="./assets/bootstrap.min.css" rel="stylesheet">
+  <link href="./assets/font.css" rel="stylesheet" type="text/css">
+  <link href="./assets/style.css" rel="stylesheet" type="text/css">
+</head>
+<!-- === Header Ends === -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+<body>
+
+
+<!-- === Home Section Starts === -->
+<div class="section">
+  <!-- === Title Starts === -->
+  <div class="header">
+    <!-- <div class="logo">
+      <a href="https://genforce.github.io/" target="_blank"><img src="./assets/genforce.png"></a>
+    </div> -->
+    <div class="title", style="padding-top: 25pt;">  <!-- Set padding as 10 if title is with two lines. -->
+      Guarded Policy Optimization with <br> Imperfect Online Demonstrations
+    </div>
+  </div>
+  <!-- === Title Ends === -->
+  <div class="author">
+    <a href="#" target="_blank">Zhenghai Xue</a><sup>1</sup>,&nbsp;&nbsp;
+    <a href="https://pengzhenghao.github.io" target="_blank">Zhenghao Peng</a><sup>2</sup>,&nbsp;&nbsp;
+    <a href="https://Quanyili.github.io">Quanyi Li</a><sup>3</sup>,&nbsp;&nbsp;
+    <a href="#" target="_blank">Zhihan Liu</a><sup>4</sup>,&nbsp;&nbsp;
+    <a href="https://boleizhou.github.io/" target="_blank">Bolei Zhou</a><sup>2</sup>&nbsp;
+
+</div>
+
+<div class="institution" style="font-size: 11pt;">
+    <div>
+        <sup>1</sup>Nanyang Technological University, Singapore,
+        <sup>2</sup>University of California, Los Angeles,<br>
+        <sup>3</sup>University of Edinburgh,
+        <sup>4</sup>Northwestern University
+    </div>
+</div>
+<table border="0" align="center">
+    <tr>
+        <td align="center" style="padding: 0pt 0 15pt 0">
+            <a class="bar" href="https://metadriverse.github.io/TS2C/"><b>Webpage</b></a> |
+<!--                <a class="bar" href="https://github.com/metadriverse/policydissect"><b>Code</b></a> |-->
+            <!-- <a class="bar" href="https://youtu.be/jPS93-d6msM"><b>Video</b></a> | -->
+            <a class="bar" href="https://github.com/metadriverse/TS2C"><b>Code</b></a> 
+            <!-- <a class="bar" href="https://arxiv.org/pdf/2210.06609.pdf"><b>Paper</b></a> -->
+        </td>
+    </tr>
+</table>
+  <!-- <div class="teaser">
+    <img src="https://via.placeholder.com/300x100">
+  </div> -->
+</div>
+<!-- === Home Section Ends === -->
+
+
+<!-- === Overview Section Starts === -->
+<div class="section">
+  <div class="title">Overview</div>
+  <div class="teaser" style="width: 85%; margin-left: 70pt">
+    <img src="assets/overview.png">
+    <div class="text">
+        <br>
+        Fig. 1: Overview of the proposed method.
+    </div>
+</div>
+  <div class="body">
+    As shown in Fig. 1, we include a teacher policy \(\pi_t\) in the training loop of RL. 
+    During the training of the student policy, both \(\pi_s\) and \(\pi_t\) receive current state \(s\) from the environment. 
+    They propose actions \(a_s\) and \(a_t\), and then a value-based intervention function \(\mathcal{T}(s)\) determines which 
+    action should be taken and applied to the environment. The student policy is then updated with data collected 
+    through both policies.   
+  </div>
+</div>
+<!-- === Overview Section Ends === -->
+
+<div class="section">
+  <div class="title">Method</div>
+  <div class="body">
+    Previous works assume the availability of a well-performing teacher policy. It intervenes whenever the student acts differently.
+     However, it is time-consuming or even impossible to obtain a well-performing teacher in many real-world applications
+      such as object manipulation with robot arms and autonomous driving. If we turn to employ a suboptimal teacher,
+      incorrect teacher intervention will result in a burdened student policy.
+    </div>
+  <div class="teaser" style="width: 85%; margin-left: 70pt">
+    <img src="assets/different_takeover.png">
+    <div class="text">
+        <br>
+        Fig. 2:     In an autonomous driving scenario, the ego vehicle is the blue one on the left, following the gray vehicle on the right. The upper trajectory is proposed by the student to overtake and the lower trajectory is proposed by the teacher to keep following. 
+    </div>
+  </div>
+  <div class="body">
+    We illustrate this phenomenon with the example in Fig. 2 where a slow vehicle in gray is driving in front of the ego-vehicle in blue. 
+    The student policy is aggressive and would like to overtake the gray vehicle to reach the destination faster, 
+    while the teacher intends to follow the vehicle conservatively. In this scenario, the teacher will intervene the student's exploration as 
+    it behaves differently. The student policy can never accomplish a successful overtake.
+   </div>
+   <div class="body">
+    To address this issue, we propose a new algorithm called Teacher-Student Shared Control (TS2C). It only allows the teacher to intervene when the student action is dangerous or has low expected return. 
+    The risk and the expected return of the student action is jointly determined by the value functions, leading to the following intervention function:
+$$\mathcal{T}(s)=\begin{cases}
+1 \quad\text{if}~V^{\pi_t}\left(s\right)-\mathbb{E}_{a\sim\pi_s(\cdot|s)}Q^{\pi_t}\left(s, a\right)>\varepsilon,\\[.8em]
+0 \quad\text{otherwise},
+\end{cases}$$
+where \(V^{\pi_t}\) and \(Q^{\pi_t}\) are the teacher's state and action-value functions, \(\pi_s(\cdot|s)\) is the student policy, and
+ \(\varepsilon\) is a threshold that controls the risk tolerance of the teacher.
+   </div>
+</div> 
+<!-- === Result Section Starts === -->
+<div class="section">
+  <div class="title">Results</div>
+  <div class="body">
+    The training result  with three different levels of teacher policy can be seen in Fig. 3. 
+    The first row shows that the performance of TS2C is not limited by the imperfect teacher policies.
+     It converges within 200k steps, independent of different performances of the teacher. 
+     EGPO and Importance Advicing is clearly bounded by teacher-medium and teacher-low, 
+     performing much worse than TS2C with imperfect teachers. The second row of Fig. 3 shows TS2C has lower training cost than both algorithms. 
+    <div class="teaser" style="width: 85%; margin-left: 50pt">
+      <img src="assets/q1.png">
+      <div class="text">
+          <br>
+          Fig. 3: Comparison between our method TS2C and other algorithms with teacher policies providing 
+          online demonstrations. "Importance" refers to the Importance Advising algorithm. 
+          For each column, the involved teacher policy has high, medium, and low performance respectively. 
+      </div>
+    </div>
+
+    The performances of TS2C in different MuJoCo environments are presented in Fig. 4. The figures show that 
+    TS2C is generalizable to different environments. It can outperform SAC in all three MuJoCo environments taken into
+consideration. On the other hand, though the EGPO algorithm has the best performance in the
+Pendulum environment, it struggles in the other two environments, namely Hopper and Walker
+    <div class="teaser" style="width: 85%; margin-left: 50pt">
+      <img src="assets/mujoco_thin.png">
+      <div class="text">
+          <br>
+          Fig. 4: Performance comparison between our method TS2C and baseline algorithms on three
+          environments from MuJoCo.
+      </div>
+    </div>
+    <!-- Demo video here. -->
+
+    <!-- Adjust the frame size based on the demo (EVERY project differs). -->
+    <!-- <div style="position: relative; padding-top: 50%; margin: 20pt 0; text-align: center;">
+      <iframe src="https://via.placeholder.com/900x450" frameborder=0
+              style="position: absolute; top: 2.5%; left: 2.5%; width: 95%; height: 100%;"
+              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+    </div> -->
+  </div>
+</div>
+<!-- === Result Section Ends === -->
+
+
+<!-- === Reference Section Starts === -->
+<div class="section">
+  <div class="bibtex">BibTeX</div>
+<pre>
+@article{xue2023guarded,
+  title   = {Guarded Policy Optimization with Imperfect Online Demonstrations},
+  author  = {Zhenghai Xue and Zhenghao Peng and Quanyi Li and Zhihan Liu and Bolei Zhou},
+  journal = {International Conference on Learning Representations},
+  year    = {2023},
+  url     = {https://openreview.net/forum?id=O5rKg7IRQIO}
+}
+</pre>
+
+  <!-- BZ: we should give other related work enough credits, -->
+  <!--     so please include some most relevant work and leave some comment to summarize work and the difference. -->
+  <!-- <div class="ref">Related Work</div>
+  <div class="citation">
+    <div class="image"><img src="https://via.placeholder.com/300x100"></div>
+    <div class="comment">
+      <a href="#" target="_blank">
+        Authors.
+        Paper Title.
+        Conference Name & Year.</a><br>
+      <b>Comment:</b>
+      This is a short comment.
+    </div>
+  </div>
+  <div class="citation">
+    <div class="image"><img src="https://via.placeholder.com/300x100"></div>
+    <div class="comment">
+      <a href="#" target="_blank">
+        Authors.
+        Paper Title.
+        Conference Name & Year.</a><br>
+      <b>Comment:</b>
+      This is a long comment. This comment is just used to test how long comments can fit the template.
+    </div>
+  </div>
+</div> -->
+<!-- === Reference Section Ends === -->
+
+
+</body>
+</html>
