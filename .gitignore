@@ -1,1 +1,5 @@
 **/.DS_Store
+**/__pychache__
+results/
+*.pyc
+ts2c_exp.egg-info
